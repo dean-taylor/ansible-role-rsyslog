@@ -1,0 +1,48 @@
+---
+# vars file for rsyslog RedHat OS family
+#
+rsyslog_imklog_enabled: false
+
+rsyslog_WorkDirectory: "/var/lib/rsyslog"
+
+rsyslog_FileOwner: ""
+rsyslog_FileGroup: ""
+rsyslog_FileCreateMode: ""
+rsyslog_DirCreateMode: ""
+rsyslog_Umask: ""
+rsyslog_PrivDropToUser: ""
+rsyslog_PrivDropToGroup: ""
+
+rsyslog_input_defaults:
+  - comment: "provides support for local system logging"
+    type: uxsock
+    options:
+      "SysSock.Use": "on"
+      "SysSock.Name": "/run/systemd/journal/syslog"
+  - comment: "provides access to the systemd journal"
+    type: journal
+    options:
+      StateFile: "imjournal.state"
+
+rsyslog_RSYSLOG_DefaultRuleset:
+  - comment: "Log anything (except mail) of level info or higher."
+    filter: "*.info;mail.none;authpriv.none;cron.none"
+    actions: ["/var/log/messages"]
+  - comment: "The authpriv file has restricted access."
+    filter: "authpriv.*"
+    actions: ["/var/log/secure"]
+  - comment: "Log all the mail messages in one place."
+    filter: "mail.*"
+    actions: ["-/var/log/maillog"]
+  - comment: "Log cron stuff"
+    filter: "cron.*"
+    actions: ["/var/log/cron"]
+  - comment: "Everybody gets emergency messages"
+    filter: "*.emerg"
+    actions: [":omusrmsg:*"]
+  - comment: "Save news errors of level crit and higher in a special file."
+    filter: "uucp,news.crit"
+    actions: ["/var/log/spooler"]
+  - comment: "Save boot messages also to boot.log"
+    filter: "local7.*"
+    actions: ["/var/log/boot.log"]

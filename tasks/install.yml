@@ -1,0 +1,9 @@
+---
+# tasks file for rsyslog install
+#
+- name: install
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "{{ rsyslog_packages }}"

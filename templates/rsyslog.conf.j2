@@ -1,0 +1,96 @@
+# /etc/rsyslog.conf configuration file for rsyslog
+#
+# For more information install rsyslog-doc and see
+# /usr/share/doc/rsyslog-doc/html/configuration/index.html
+
+#### MODULES
+
+{% for im in rsyslog_input_defaults %}
+{% if im.comment is defined %}
+# {{ im.comment }}
+{% endif %}
+module(load="im{{ im.type }}"{% if im.options is defined %}{% for opt_name,opt in im.options.items() %} {{ opt_name }}="{{ opt }}"{% endfor %}{% endif %})
+
+{% endfor %}
+{% for im in rsyslog_modules %}
+module(load="im{{ im }}")
+
+{% endfor %}
+#### RULESETS
+{% for ruleset_name,rules in rsyslog_rulesets.items() %}
+ruleset(name="{{ ruleset_name }}"){
+  {% for rule in rules %}
+    {% if rule.outputs is defined %}
+      {% for action in rule.outputs %}
+	action(type="om{{ (rsyslog_outputs[action]).type }}"
+        {% if (rsyslog_outputs[action]).params is defined %}
+          {% for param_name,param in (rsyslog_outputs[action]).params.items() %}
+		{{ param_name }}="{{ param }}"
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+		)
+  {% endfor %}
+}
+{% endfor %}
+
+#### GLOBAL DIRECTIVES
+
+# Use traditional timestamp format.
+# To enable high precision timestamps, comment out the following line.
+$ActionFileDefaultTemplate {{ rsyslog_ActionFileDefaultTemplate }}
+
+# Filter duplicated messages
+$RepeatedMsgReduction {{ rsyslog_RepeatedMsgReduction }}
+
+# Set the default permissions for all log files.
+{% if rsyslog_FileOwner %}
+$FileOwner {{ rsyslog_FileOwner }}
+{% endif %}
+{% if rsyslog_FileGroup %}
+$FileGroup {{ rsyslog_FileGroup }}
+{% endif %}
+{% if rsyslog_FileCreateMode %}
+$FileCreateMode {{ rsyslog_FileCreateMode }}
+{% endif %}
+{% if rsyslog_DirCreateMode %}
+$DirCreateMode {{ rsyslog_DirCreateMode }}
+{% endif %}
+{% if rsyslog_Umask %}
+$Umask {{ rsyslog_Umask }}
+{% endif %}
+{% if rsyslog_PrivDropToUser %}
+$PrivDropToUser {{ rsyslog_PrivDropToUser }}
+{% endif %}
+{% if rsyslog_PrivDropToGroup %}
+$PrivDropToGroup {{ rsyslog_PrivDropToGroup }}
+{% endif %}
+
+# Where to place spool and state files
+$WorkDirectory {{ rsyslog_WorkDirectory }}
+
+# Include all config files in /etc/rsyslog.d/
+$IncludeConfig /etc/rsyslog.d/*.conf
+
+#### INPUT MODULES BOUND TO RULESETS
+#
+{% for input in rsyslog_inputs %}
+input(type="im{{ input.type }}"
+{% if input.params is defined %}
+  {% for param_name,param in input.params.items() %}
+	{{ param_name }}="{{ param }}"
+  {% endfor %}
+{% endif %}
+	)
+{% endfor %}
+
+#### DEFAULT RULES
+#
+{% for rule in rsyslog_RSYSLOG_DefaultRuleset %}
+{% if rule.comment is defined %}
+# {{ rule.comment }}
+{% endif %}
+{{ rule.filter }}{% for action in rule.actions %} {{ action }}{% endfor %}
+
+{% endfor %}

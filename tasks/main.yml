@@ -1,0 +1,23 @@
+---
+# tasks file for rsyslog
+#
+- name: include os specific variables
+  ansible.builtin.include_vars:
+    file: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_os_family }}.yml"
+    - default.yml
+
+- ansible.builtin.set_fact:
+    rsyslog_modules: "{{ rsyslog_inputs |map(attribute='type') | list |unique }}"
+
+- name: install
+  ansible.builtin.include_tasks: "{{ include_task_item }}"
+  with_first_found:
+    - install_{{ ansible_os_family }}.yml
+    - install.yml
+  loop_control:
+    loop_var: include_task_item
+
+- name: configure
+  ansible.builtin.include_tasks: configure.yml

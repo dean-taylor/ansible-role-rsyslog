@@ -1,0 +1,31 @@
+---
+# tasks file for rsyslog configuration
+#
+- name: create directories
+  ansible.builtin.file:
+    mode: 0755
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /etc/rsyslog.d
+
+- name: disable defaults
+  ansible.builtin.command:
+    cmd: mv -f {{ item }} {{ item }}.disabled
+    removes: "{{ item }}"
+  notify:
+    - restart rsyslog
+  with_items:
+    - /etc/rsyslog.d/50-default.conf
+    - /etc/rsyslog.d/listen.conf
+
+- name: /etc/rsyslog.conf
+  ansible.builtin.template:
+    backup: yes
+    dest: /etc/rsyslog.conf
+    mode: 0644
+    src: rsyslog.conf.j2
+    validate: "{{ rsyslog_rsyslogd }} -f %s -N1"
+  notify:
+    - restart rsyslog
+  #debugger: on_failed

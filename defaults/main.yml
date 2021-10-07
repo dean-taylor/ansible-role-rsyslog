@@ -1,0 +1,18 @@
+---
+# defaults file for rsyslog
+#
+rsyslog_inputs: []
+rsyslog_outputs: []
+rsyslog_rulesets: {}
+rsyslog_flows: {}
+
+rsyslog_relp_address: "{{ ansible_default_ipv4.address }}"
+rsyslog_relp_port: "2514"
+rsyslog_relp_maxDataSize: "10k"
+rsyslog_relp_keepAlive: true
+rsyslog_relp_keepAlive_probes: 0
+rsyslog_relp_keepAlive_interval: 0
+rsyslog_relp_keepAlive_time: 0
+rsyslog_relp_tls: false
+
+rsyslog_server_group: "logging_server"

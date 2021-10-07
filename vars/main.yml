@@ -1,0 +1,57 @@
+---
+# vars file for rsyslog
+#
+rsyslog_packages: [ rsyslog, rsyslog-relp ]
+rsyslog_service: rsyslog.service
+rsyslog_rsyslogd: /usr/sbin/rsyslogd
+
+rsyslog_WorkDirectory: /var/spool/rsyslog
+
+rsyslog_elasticsearch_packages: [ rsyslog-elasticsearch ]
+rsyslog_relp_packages: [ rsyslog-relp ]
+
+rsyslog_DefaultRuleset: RSYSLOG_DefaultRuleset
+
+rsyslog_imklog_enabled: true
+rsyslog_imklog_permitnonkernelfacility: "on"
+
+rsyslog_ActionFileDefaultTemplate: RSYSLOG_TraditionalFileFormat
+rsyslog_RepeatedMsgReduction: "on"
+rsyslog_FileOwner: syslog
+rsyslog_FileGroup: adm
+rsyslog_FileCreateMode: "0640"
+rsyslog_DirCreateMode: "0755"
+rsyslog_Umask: "0022"
+rsyslog_PrivDropToUser: "{{ rsyslog_FileOwner }}"
+rsyslog_PrivDropToGroup: "{{ rsyslog_FileOwner }}"
+
+rsyslog_input_defaults:
+  - comment: "provides support for local system logging"
+    type: uxsock
+  - comment: "provides kernel logging support and enable non-kernel klog messages"
+    type: klog
+    options:
+      permitnonkernelfacility: "on"
+
+rsyslog_RSYSLOG_DefaultRuleset:
+  - comment: "First some standard log files.  Log by facility."
+    filter: "auth,authpriv.*"
+    actions: ["/var/log/auth.log"]
+  - filter: "*.*;auth,authpriv.none"
+    actions: ["-/var/log/syslog"]
+  - filter: "kern.*"
+    actions: ["-/var/log/kern.log"]
+  - filter: "mail.*"
+    actions: ["-/var/log/mail.log"]
+  - comment: "Logging for the mail system.  Split it up so that it is easy to write scripts to parse these files."
+    filter: "mail.err"
+    actions: ["/var/log/mail.err"]
+  - comment: "Emergencies are sent to everybody logged in."
+    filter: "*.emerg"
+    actions: [":omusrmsg:*"]
+
+rsyslog_flows:
+  "{{ rsyslog_DefaultRuleset }}":
+    inputs: []
+    outputs: []
+
